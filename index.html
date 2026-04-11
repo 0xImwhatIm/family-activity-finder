@@ -603,6 +603,7 @@ ${interestText}
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        tools: [{ google_search: {} }],
         generationConfig: {
           temperature: 0.5,
           maxOutputTokens: 8192
@@ -616,38 +617,39 @@ ${interestText}
     }
 
     const data = await res.json();
-
-    // Extract all text parts from Gemini response (may include search results + answer)
     const candidate = data.candidates?.[0];
     if (!candidate) throw new Error('Gemini 沒有回傳結果，請再試一次');
 
     const parts = candidate.content?.parts || [];
-    let text = parts
-      .filter(p => p.text && p.text.trim().length > 0)
-      .map(p => p.text)
-      .join('\n');
-
+    let text = parts.filter(p => p.text && p.text.trim().length > 0).map(p => p.text).join('\n');
     if (!text) throw new Error('Gemini 沒有回傳文字內容，請再試一次');
 
-    // Strip markdown code fences
+    // Clean up response
     text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+    text = text.replace(/\s*\[cite:[^\]]*\]/g, '');
 
-    // Try to find JSON array in response
-    const jsonMatch = text.match(/\[[\s\S]*?\](?=\s*$)/) || text.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) {
-      // Last resort: try to parse entire text as JSON
-      try {
-        const activities = JSON.parse(text);
-        if (Array.isArray(activities)) {
-          lastActivities = activities;
-          renderResults(activities, regions, age, weeks);
-          return;
-        }
-      } catch {}
-      throw new Error('AI 回覆格式異常，請再試一次（若持續發生請重新整理頁面）');
+    // Find JSON array
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error('AI 未回傳活動資料，請再試一次');
+
+    let jsonStr = jsonMatch[0];
+
+    // If truncated by MAX_TOKENS, salvage complete objects
+    if (candidate.finishReason === 'MAX_TOKENS') {
+      const lastComma = jsonStr.lastIndexOf('},');
+      if (lastComma > 0) jsonStr = jsonStr.slice(0, lastComma + 1) + ']';
     }
 
-    const activities = JSON.parse(jsonMatch[0]);
+    // Remove control characters that break JSON parsing
+    jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
+    let activities;
+    try {
+      activities = JSON.parse(jsonStr);
+    } catch(parseErr) {
+      throw new Error('活動資料解析失敗，請再試一次');
+    }
+
     if (!Array.isArray(activities) || activities.length === 0) {
       throw new Error('AI 未找到符合條件的活動，請調整搜尋條件後再試');
     }
