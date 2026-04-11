@@ -578,7 +578,7 @@ ${interestText}
 - 各縣市文化局舉辦的親子活動
 - 自然、農場、戶外體驗類活動
 
-請提供 5–7 個推薦活動，以 JSON 格式回覆，不要有其他說明文字，也不要用 markdown 的 \`\`\`json 包住，直接輸出純 JSON 陣列，格式如下：
+請提供 3–5 個推薦活動，以 JSON 格式回覆，不要有其他說明文字，也不要用 markdown 的 \`\`\`json 包住，直接輸出純 JSON 陣列，格式如下：
 [
   {
     "name": "活動名稱",
@@ -603,10 +603,9 @@ ${interestText}
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        tools: [{ google_search: {} }],
         generationConfig: {
           temperature: 0.5,
-          maxOutputTokens: 3000
+          maxOutputTokens: 8192
         }
       })
     });
