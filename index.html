@@ -605,8 +605,8 @@ ${interestText}
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         tools: [{ google_search: {} }],
         generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2048
+          temperature: 0.5,
+          maxOutputTokens: 3000
         }
       })
     });
@@ -618,20 +618,41 @@ ${interestText}
 
     const data = await res.json();
 
-    // Extract text from Gemini response
-    const parts = data.candidates?.[0]?.content?.parts || [];
-    let text = parts.filter(p => p.text).map(p => p.text).join('');
+    // Extract all text parts from Gemini response (may include search results + answer)
+    const candidate = data.candidates?.[0];
+    if (!candidate) throw new Error('Gemini 沒有回傳結果，請再試一次');
 
-    if (!text) throw new Error('Gemini 沒有回傳內容，請再試一次');
+    const parts = candidate.content?.parts || [];
+    let text = parts
+      .filter(p => p.text && p.text.trim().length > 0)
+      .map(p => p.text)
+      .join('\n');
 
-    // Strip markdown code fences if present
+    if (!text) throw new Error('Gemini 沒有回傳文字內容，請再試一次');
+
+    // Strip markdown code fences
     text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
 
-    // Parse JSON from response
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) throw new Error('無法解析 AI 回覆，請再試一次');
+    // Try to find JSON array in response
+    const jsonMatch = text.match(/\[[\s\S]*?\](?=\s*$)/) || text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      // Last resort: try to parse entire text as JSON
+      try {
+        const activities = JSON.parse(text);
+        if (Array.isArray(activities)) {
+          lastActivities = activities;
+          renderResults(activities, regions, age, weeks);
+          return;
+        }
+      } catch {}
+      throw new Error('AI 回覆格式異常，請再試一次（若持續發生請重新整理頁面）');
+    }
 
     const activities = JSON.parse(jsonMatch[0]);
+    if (!Array.isArray(activities) || activities.length === 0) {
+      throw new Error('AI 未找到符合條件的活動，請調整搜尋條件後再試');
+    }
+
     lastActivities = activities;
     renderResults(activities, regions, age, weeks);
 
