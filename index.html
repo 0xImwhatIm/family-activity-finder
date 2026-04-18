@@ -511,8 +511,8 @@
           <button class="action-btn" onclick="toggleNotionConfig()">取消</button>
         </div>
         <div style="font-size:12px;color:var(--muted)">
-          需先在 Notion 建立包含以下欄位的資料庫：名稱(title)、日期(date)、地點(rich_text)、連結(url)、推薦理由(rich_text)、地區(select)。
-          <a href="https://www.notion.so/my-integrations" target="_blank" style="color:var(--accent2)">建立 Integration →</a>
+          使用你的 Events_DB（活動收藏）。存入前請確認已在 Notion 將 Integration 連結到該 Database。
+          <a href="https://www.notion.so/my-integrations" target="_blank" style="color:var(--accent2)">管理 Integration →</a>
         </div>
       </div>
     </div>
@@ -716,6 +716,12 @@ async function saveToNotion() {
 
   for (const a of lastActivities) {
     try {
+      // Build reason text: include region + AI reason
+      const noteText = [
+        a.region ? `地區：${a.region}` : '',
+        a.reason || ''
+      ].filter(Boolean).join('\n');
+
       const res = await fetch('https://api.notion.com/v1/pages', {
         method: 'POST',
         headers: {
@@ -726,17 +732,27 @@ async function saveToNotion() {
         body: JSON.stringify({
           parent: { database_id: dbId },
           properties: {
-            '名稱': { title: [{ text: { content: a.name || '' } }] },
-            '日期': { rich_text: [{ text: { content: a.date || '' } }] },
+            '活動名稱': { title: [{ text: { content: a.name || '' } }] },
+            '開始時間': { date: a.date ? { start: parseNotionDate(a.date) } : null },
             '地點': { rich_text: [{ text: { content: a.location || '' } }] },
-            '連結': { url: a.link || null },
-            '推薦理由': { rich_text: [{ text: { content: a.reason || '' } }] },
-            '地區': { select: { name: a.region || '台北市區' } }
+            '超連結': { url: (a.link && a.link !== '#') ? a.link : null },
+            '備註': { rich_text: [{ text: { content: noteText } }] },
+            '狀態': { status: { name: '收集' } },
+            '來源': { select: { name: '其它' } },
+            '類型': { multi_select: [{ name: '親子' }] }
           }
         })
       });
-      if (res.ok) success++; else fail++;
-    } catch { fail++; }
+      if (res.ok) success++;
+      else {
+        const errData = await res.json().catch(() => ({}));
+        console.error('Notion error:', errData);
+        fail++;
+      }
+    } catch(e) {
+      console.error('Notion save error:', e);
+      fail++;
+    }
   }
 
   btn.disabled = false;
@@ -746,6 +762,17 @@ async function saveToNotion() {
     ? `已成功存入 ${success} 個活動到 Notion`
     : `存入完成：${success} 成功，${fail} 失敗`
   );
+}
+
+function parseNotionDate(dateStr) {
+  if (!dateStr) return new Date().toISOString().split('T')[0];
+  // Handle ranges like "2026/04/18–2026/05/09", take start date
+  const cleaned = dateStr.split(/[–—~至]/)[0].trim();
+  // Try to parse various formats
+  const m = cleaned.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  // Fallback: today
+  return new Date().toISOString().split('T')[0];
 }
 
 function setLoading(on) {
