@@ -681,6 +681,14 @@
   <script>
     let lastActivities = [];
 
+    // 自動讀取之前儲存的 Gemini API Key (BYOK 模式優化)
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedGeminiKey = localStorage.getItem('geminiApiKey');
+      if (savedGeminiKey) {
+        document.getElementById('geminiKey').value = savedGeminiKey;
+      }
+    });
+
     // Toggle buttons
     document.querySelectorAll('.region-btn').forEach(btn => {
       btn.addEventListener('click', () => btn.classList.toggle('on'));
@@ -704,6 +712,9 @@
     async function doSearch() {
       const apiKey = document.getElementById('geminiKey').value.trim();
       if (!apiKey) { showError('請先填入 Gemini API Key'); return; }
+
+      // 搜尋時自動記憶，免除下次重新貼上的麻煩
+      localStorage.setItem('geminiApiKey', apiKey);
 
       const regions = getRegions();
       if (!regions.length) { showError('請至少選擇一個地區'); return; }
