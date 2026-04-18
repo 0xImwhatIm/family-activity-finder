@@ -357,6 +357,30 @@
   }
   .activity-link:hover { border-bottom-color: var(--accent); }
 
+  .activity-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .activity-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--accent2);
+    flex-shrink: 0;
+  }
+  .activity-checkbox label {
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+  }
+  .activity-card.selected {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 1px var(--accent2);
+  }
+
   /* Notion config */
   .notion-config {
     display: none;
@@ -491,7 +515,8 @@
 
     <div class="action-row">
       <button class="action-btn" onclick="copyList()">複製清單</button>
-      <button class="action-btn notion" id="notionBtn" onclick="toggleNotionConfig()">存入 Notion</button>
+      <button class="action-btn" onclick="toggleSelectAll()">全選／取消</button>
+      <button class="action-btn notion" id="notionBtn" onclick="toggleNotionConfig()">存入已選活動</button>
     </div>
 
     <!-- Notion config (hidden by default) -->
@@ -671,7 +696,11 @@ function renderResults(activities, regions, age, weeks) {
   meta.textContent = `共 ${activities.length} 個活動 · ${regions.join('、')} · 未來 ${weeks} 週`;
 
   list.innerHTML = activities.map((a, i) => `
-    <div class="activity-card" style="animation-delay:${i*0.06}s">
+    <div class="activity-card" id="card-${i}" style="animation-delay:${i*0.06}s">
+      <div class="activity-checkbox">
+        <input type="checkbox" id="chk-${i}" onchange="toggleCard(${i})" checked>
+        <label for="chk-${i}">加入收藏</label>
+      </div>
       <div class="activity-top">
         <div class="activity-name">${escHtml(a.name)}</div>
         <div class="region-tag">${escHtml(a.region || '')}</div>
@@ -685,8 +714,28 @@ function renderResults(activities, regions, age, weeks) {
     </div>
   `).join('');
 
+  // Default: all checked and highlighted
+  activities.forEach((_, i) => {
+    document.getElementById('card-' + i)?.classList.add('selected');
+  });
+
   document.getElementById('results').classList.add('show');
   document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function toggleCard(i) {
+  const chk = document.getElementById('chk-' + i);
+  const card = document.getElementById('card-' + i);
+  if (chk && card) card.classList.toggle('selected', chk.checked);
+}
+
+function toggleSelectAll() {
+  const checkboxes = document.querySelectorAll('.activity-checkbox input[type="checkbox"]');
+  const allChecked = [...checkboxes].every(c => c.checked);
+  checkboxes.forEach((c, i) => {
+    c.checked = !allChecked;
+    toggleCard(i);
+  });
 }
 
 function copyList() {
@@ -706,15 +755,19 @@ async function saveToNotion() {
   const token = document.getElementById('notionToken').value.trim();
   const dbId = document.getElementById('notionDbId').value.trim().replace(/-/g, '');
   if (!token || !dbId) { showToast('請填入 Notion Token 和 Database ID'); return; }
-  if (!lastActivities.length) { showToast('沒有可存入的活動資料'); return; }
+  const selected = lastActivities.filter((_, i) => {
+    const chk = document.getElementById('chk-' + i);
+    return chk && chk.checked;
+  });
+  if (!selected.length) { showToast('請至少勾選一個活動'); return; }
 
   const btn = document.getElementById('notionSaveBtn');
   btn.disabled = true;
-  btn.textContent = '存入中...';
+  btn.textContent = `存入 ${selected.length} 個活動中...`;
 
   let success = 0, fail = 0;
 
-  for (const a of lastActivities) {
+  for (const a of selected) {
     try {
       // Build reason text: include region + AI reason
       const noteText = [
