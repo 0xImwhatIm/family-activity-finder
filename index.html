@@ -1,575 +1,725 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>親子活動搜尋器</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --ink: #1a1a18;
-    --paper: #f5f2eb;
-    --paper2: #ede9df;
-    --accent: #b85c2a;
-    --accent2: #4a7c6f;
-    --muted: #7a7670;
-    --border: #d6d0c4;
-    --tag-bg: #e8e2d6;
-    --radius: 10px;
-    --shadow: 0 2px 12px rgba(0,0,0,0.07);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>親子活動搜尋器</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a1a18;
+      --paper: #f5f2eb;
+      --paper2: #ede9df;
+      --accent: #b85c2a;
+      --accent2: #4a7c6f;
+      --muted: #7a7670;
+      --border: #d6d0c4;
+      --tag-bg: #e8e2d6;
+      --radius: 10px;
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+    }
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    min-height: 100vh;
-    font-size: 15px;
-    line-height: 1.6;
-  }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  /* Header */
-  header {
-    background: var(--ink);
-    color: var(--paper);
-    padding: 28px 24px 24px;
-    position: relative;
-    overflow: hidden;
-  }
-  header::before {
-    content: '';
-    position: absolute;
-    top: -40px; right: -40px;
-    width: 200px; height: 200px;
-    border-radius: 50%;
-    background: var(--accent);
-    opacity: 0.15;
-  }
-  header h1 {
-    font-family: 'Noto Serif TC', serif;
-    font-size: clamp(22px, 5vw, 30px);
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    position: relative;
-  }
-  header p {
-    font-size: 13px;
-    color: #aaa9a3;
-    margin-top: 6px;
-    position: relative;
-  }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+    }
 
-  /* Main layout */
-  main {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 20px 16px 60px;
-  }
+    /* Header */
+    header {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 28px 24px 24px;
+      position: relative;
+      overflow: hidden;
+    }
 
-  /* Card */
-  .card {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow);
-  }
-  .card-title {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 14px;
-  }
+    header::before {
+      content: '';
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.15;
+    }
 
-  /* API key input */
-  .key-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-  .key-input {
-    flex: 1;
-    padding: 10px 14px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-family: 'DM Sans', monospace;
-    font-size: 13px;
-    background: var(--paper);
-    color: var(--ink);
-    outline: none;
-    transition: border 0.2s;
-  }
-  .key-input:focus { border-color: var(--accent2); }
-  .toggle-vis {
-    padding: 10px 14px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--paper);
-    cursor: pointer;
-    font-size: 13px;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-  .toggle-vis:hover { background: var(--paper2); }
+    header h1 {
+      font-family: 'Noto Serif TC', serif;
+      font-size: clamp(22px, 5vw, 30px);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      position: relative;
+    }
 
-  /* Region toggles */
-  .region-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .region-btn {
-    padding: 7px 16px;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    background: var(--paper);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s;
-    color: var(--muted);
-  }
-  .region-btn.on {
-    background: var(--ink);
-    color: var(--paper);
-    border-color: var(--ink);
-  }
+    header p {
+      font-size: 13px;
+      color: #aaa9a3;
+      margin-top: 6px;
+      position: relative;
+    }
 
-  /* Age / month controls */
-  .control-row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex: 1;
-    min-width: 140px;
-  }
-  .control-label {
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .control-input {
-    padding: 9px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    background: var(--paper);
-    color: var(--ink);
-    outline: none;
-  }
-  .control-input:focus { border-color: var(--accent2); }
+    /* Main layout */
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 20px 16px 60px;
+    }
 
-  /* Interest tags */
-  .interest-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .interest-btn {
-    padding: 6px 14px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--tag-bg);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s;
-    color: var(--ink);
-  }
-  .interest-btn.on {
-    background: var(--accent2);
-    color: white;
-    border-color: var(--accent2);
-  }
+    /* Card */
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
 
-  /* Search button */
-  .search-btn {
-    width: 100%;
-    padding: 15px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: var(--radius);
-    font-family: 'Noto Serif TC', serif;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 0.04em;
-    margin-bottom: 16px;
-  }
-  .search-btn:hover { background: #9e4d22; transform: translateY(-1px); }
-  .search-btn:active { transform: translateY(0); }
-  .search-btn:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+    .card-title {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
+    }
 
-  /* Loading */
-  .loading {
-    display: none;
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--muted);
-  }
-  .loading.show { display: block; }
-  .spinner {
-    width: 32px; height: 32px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+    /* API key input */
+    .key-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
 
-  /* Error */
-  .error-box {
-    display: none;
-    background: #fef2f0;
-    border: 1px solid #f5c6bc;
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    color: #a33;
-    font-size: 14px;
-    margin-bottom: 16px;
-  }
-  .error-box.show { display: block; }
+    .key-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', monospace;
+      font-size: 13px;
+      background: var(--paper);
+      color: var(--ink);
+      outline: none;
+      transition: border 0.2s;
+    }
 
-  /* Results */
-  #results { display: none; }
-  #results.show { display: block; }
+    .key-input:focus {
+      border-color: var(--accent2);
+    }
 
-  .results-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .results-title {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 18px;
-    font-weight: 600;
-  }
-  .results-meta {
-    font-size: 12px;
-    color: var(--muted);
-  }
+    .toggle-vis {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--paper);
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
 
-  .action-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-  .action-btn {
-    padding: 9px 18px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: white;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s;
-    color: var(--ink);
-    font-family: 'DM Sans', sans-serif;
-  }
-  .action-btn:hover { background: var(--paper2); }
-  .action-btn.notion { background: var(--ink); color: white; border-color: var(--ink); }
-  .action-btn.notion:hover { background: #333; }
-  .action-btn.notion:disabled { background: var(--muted); cursor: not-allowed; }
+    .toggle-vis:hover {
+      background: var(--paper2);
+    }
 
-  /* Activity cards */
-  .activity-card {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    margin-bottom: 12px;
-    box-shadow: var(--shadow);
-    animation: fadeUp 0.3s ease both;
-  }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .activity-card:nth-child(2) { animation-delay: 0.05s; }
-  .activity-card:nth-child(3) { animation-delay: 0.1s; }
-  .activity-card:nth-child(4) { animation-delay: 0.15s; }
-  .activity-card:nth-child(5) { animation-delay: 0.2s; }
+    /* Region toggles */
+    .region-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
 
-  .activity-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 8px;
-  }
-  .activity-name {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 16px;
-    font-weight: 600;
-    flex: 1;
-    line-height: 1.4;
-  }
-  .region-tag {
-    padding: 3px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    background: var(--tag-bg);
-    color: var(--muted);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .activity-meta {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-bottom: 10px;
-  }
-  .activity-meta span {
-    font-size: 13px;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .activity-reason {
-    font-size: 14px;
-    color: #4a4845;
-    line-height: 1.65;
-    border-left: 2px solid var(--accent2);
-    padding-left: 12px;
-    margin-bottom: 10px;
-  }
-  .activity-link {
-    font-size: 13px;
-    color: var(--accent);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-    transition: border 0.15s;
-  }
-  .activity-link:hover { border-bottom-color: var(--accent); }
+    .region-btn {
+      padding: 7px 16px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--paper);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--muted);
+    }
 
-  .activity-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  .activity-checkbox input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: var(--accent2);
-    flex-shrink: 0;
-  }
-  .activity-checkbox label {
-    font-size: 13px;
-    color: var(--muted);
-    cursor: pointer;
-    user-select: none;
-  }
-  .activity-card.selected {
-    border-color: var(--accent2);
-    box-shadow: 0 0 0 1px var(--accent2);
-  }
+    .region-btn.on {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
 
-  /* Notion config */
-  .notion-config {
-    display: none;
-    background: var(--paper);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    margin-bottom: 16px;
-  }
-  .notion-config.show { display: block; }
-  .notion-config .card-title { margin-bottom: 12px; }
-  .notion-fields { display: flex; flex-direction: column; gap: 10px; }
-  .notion-field label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
-  .notion-field input {
-    width: 100%;
-    padding: 9px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 13px;
-    background: white;
-    color: var(--ink);
-    font-family: monospace;
-    outline: none;
-  }
-  .notion-field input:focus { border-color: var(--accent2); }
+    /* Age / month controls */
+    .control-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
 
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--ink);
-    color: var(--paper);
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 14px;
-    opacity: 0;
-    transition: all 0.3s;
-    z-index: 999;
-    white-space: nowrap;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-width: 140px;
+    }
 
-  @media (max-width: 480px) {
-    header { padding: 20px 16px; }
-    .card { padding: 16px; }
-    .activity-top { flex-direction: column; }
-    .region-tag { align-self: flex-start; }
-  }
-</style>
+    .control-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .control-input {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      background: var(--paper);
+      color: var(--ink);
+      outline: none;
+    }
+
+    .control-input:focus {
+      border-color: var(--accent2);
+    }
+
+    /* Interest tags */
+    .interest-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .interest-btn {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--tag-bg);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--ink);
+    }
+
+    .interest-btn.on {
+      background: var(--accent2);
+      color: white;
+      border-color: var(--accent2);
+    }
+
+    /* Search button */
+    .search-btn {
+      width: 100%;
+      padding: 15px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'Noto Serif TC', serif;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.04em;
+      margin-bottom: 16px;
+    }
+
+    .search-btn:hover {
+      background: #9e4d22;
+      transform: translateY(-1px);
+    }
+
+    .search-btn:active {
+      transform: translateY(0);
+    }
+
+    .search-btn:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Loading */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Error */
+    .error-box {
+      display: none;
+      background: #fef2f0;
+      border: 1px solid #f5c6bc;
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      color: #a33;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .error-box.show {
+      display: block;
+    }
+
+    /* Results */
+    #results {
+      display: none;
+    }
+
+    #results.show {
+      display: block;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .results-title {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .results-meta {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .action-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      padding: 9px 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .action-btn:hover {
+      background: var(--paper2);
+    }
+
+    .action-btn.notion {
+      background: var(--ink);
+      color: white;
+      border-color: var(--ink);
+    }
+
+    .action-btn.notion:hover {
+      background: #333;
+    }
+
+    .action-btn.notion:disabled {
+      background: var(--muted);
+      cursor: not-allowed;
+    }
+
+    /* Activity cards */
+    .activity-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      animation: fadeUp 0.3s ease both;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .activity-card:nth-child(2) {
+      animation-delay: 0.05s;
+    }
+
+    .activity-card:nth-child(3) {
+      animation-delay: 0.1s;
+    }
+
+    .activity-card:nth-child(4) {
+      animation-delay: 0.15s;
+    }
+
+    .activity-card:nth-child(5) {
+      animation-delay: 0.2s;
+    }
+
+    .activity-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .activity-name {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 16px;
+      font-weight: 600;
+      flex: 1;
+      line-height: 1.4;
+    }
+
+    .region-tag {
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      background: var(--tag-bg);
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .activity-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .activity-meta span {
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .activity-reason {
+      font-size: 14px;
+      color: #4a4845;
+      line-height: 1.65;
+      border-left: 2px solid var(--accent2);
+      padding-left: 12px;
+      margin-bottom: 10px;
+    }
+
+    .activity-link {
+      font-size: 13px;
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border 0.15s;
+    }
+
+    .activity-link:hover {
+      border-bottom-color: var(--accent);
+    }
+
+    .activity-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .activity-checkbox input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--accent2);
+      flex-shrink: 0;
+    }
+
+    .activity-checkbox label {
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .activity-card.selected {
+      border-color: var(--accent2);
+      box-shadow: 0 0 0 1px var(--accent2);
+    }
+
+    /* Notion config */
+    .notion-config {
+      display: none;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+
+    .notion-config.show {
+      display: block;
+    }
+
+    .notion-config .card-title {
+      margin-bottom: 12px;
+    }
+
+    .notion-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .notion-field label {
+      font-size: 12px;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .notion-field input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      background: white;
+      color: var(--ink);
+      font-family: monospace;
+      outline: none;
+    }
+
+    .notion-field input:focus {
+      border-color: var(--accent2);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--ink);
+      color: var(--paper);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 999;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 480px) {
+      header {
+        padding: 20px 16px;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      .activity-top {
+        flex-direction: column;
+      }
+
+      .region-tag {
+        align-self: flex-start;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<header>
-  <h1>親子活動搜尋器</h1>
-  <p>以 AI 篩選台北及近郊適合孩子的體驗活動</p>
-</header>
+  <header>
+    <h1>親子活動搜尋器</h1>
+    <p>以 AI 篩選台北及近郊適合孩子的體驗活動</p>
+  </header>
 
-<main>
+  <main>
 
-  <!-- API Keys -->
-  <div class="card">
-    <div class="card-title">API 金鑰設定</div>
-    <div style="margin-bottom:12px">
-      <div class="control-label" style="margin-bottom:6px">Gemini API Key（必填）</div>
-      <div class="key-row">
-        <input class="key-input" id="geminiKey" type="password" placeholder="AIza..." autocomplete="off">
-        <button class="toggle-vis" onclick="toggleVis('geminiKey')">顯示</button>
+    <!-- API Keys -->
+    <div class="card">
+      <div class="card-title">API 金鑰設定</div>
+      <div style="margin-bottom:12px">
+        <div class="control-label" style="margin-bottom:6px">Gemini API Key（必填）</div>
+        <div class="key-row">
+          <input class="key-input" id="geminiKey" type="password" placeholder="AIza..." autocomplete="off">
+          <button class="toggle-vis" onclick="toggleVis('geminiKey')">顯示</button>
+        </div>
       </div>
-    </div>
-    <div style="font-size:12px;color:var(--muted)">
-      Key 只存在瀏覽器，不會傳送到任何伺服器。
-      <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--accent2)">免費申請 Gemini Key →</a>
-    </div>
-  </div>
-
-  <!-- Search settings -->
-  <div class="card">
-    <div class="card-title">搜尋設定</div>
-
-    <div class="control-row" style="margin-bottom:16px">
-      <div class="control-group">
-        <div class="control-label">孩子年齡</div>
-        <input class="control-input" id="childAge" type="number" value="12" min="1" max="18">
-      </div>
-      <div class="control-group">
-        <div class="control-label">搜尋未來幾週</div>
-        <input class="control-input" id="weeksAhead" type="number" value="4" min="1" max="12">
+      <div style="font-size:12px;color:var(--muted)">
+        Key 只存在瀏覽器，不會傳送到任何伺服器。
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--accent2)">免費申請 Gemini Key
+          →</a>
       </div>
     </div>
 
-    <div style="margin-bottom:16px">
-      <div class="control-label" style="margin-bottom:8px">活動地區</div>
-      <div class="region-grid" id="regionGroup">
-        <button class="region-btn on" data-val="台北市區">台北市區</button>
-        <button class="region-btn on" data-val="新北／基隆">新北／基隆</button>
-        <button class="region-btn on" data-val="宜蘭／桃園">宜蘭／桃園</button>
-        <button class="region-btn" data-val="外縣市旅行">外縣市旅行</button>
+    <!-- Search settings -->
+    <div class="card">
+      <div class="card-title">搜尋設定</div>
+
+      <div class="control-row" style="margin-bottom:16px">
+        <div class="control-group">
+          <div class="control-label">孩子年齡</div>
+          <input class="control-input" id="childAge" type="number" value="12" min="1" max="18">
+        </div>
+        <div class="control-group">
+          <div class="control-label">搜尋未來幾週</div>
+          <input class="control-input" id="weeksAhead" type="number" value="4" min="1" max="12">
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div class="control-label" style="margin-bottom:8px">活動地區</div>
+        <div class="region-grid" id="regionGroup">
+          <button class="region-btn on" data-val="台北市區">台北市區</button>
+          <button class="region-btn on" data-val="新北／基隆">新北／基隆</button>
+          <button class="region-btn on" data-val="宜蘭／桃園">宜蘭／桃園</button>
+          <button class="region-btn" data-val="外縣市旅行">外縣市旅行</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="control-label" style="margin-bottom:8px">興趣方向（可複選，不選則全搜）</div>
+        <div class="interest-grid" id="interestGroup">
+          <button class="interest-btn" data-val="藝術與設計">藝術與設計</button>
+          <button class="interest-btn" data-val="科學與科技">科學與科技</button>
+          <button class="interest-btn" data-val="自然與戶外">自然與戶外</button>
+          <button class="interest-btn" data-val="歷史與文化">歷史與文化</button>
+          <button class="interest-btn" data-val="音樂與表演">音樂與表演</button>
+          <button class="interest-btn" data-val="手作與工藝">手作與工藝</button>
+          <button class="interest-btn" data-val="運動與體能">運動與體能</button>
+          <button class="interest-btn" data-val="美食與生活">美食與生活</button>
+        </div>
       </div>
     </div>
 
-    <div>
-      <div class="control-label" style="margin-bottom:8px">興趣方向（可複選，不選則全搜）</div>
-      <div class="interest-grid" id="interestGroup">
-        <button class="interest-btn" data-val="藝術與設計">藝術與設計</button>
-        <button class="interest-btn" data-val="科學與科技">科學與科技</button>
-        <button class="interest-btn" data-val="自然與戶外">自然與戶外</button>
-        <button class="interest-btn" data-val="歷史與文化">歷史與文化</button>
-        <button class="interest-btn" data-val="音樂與表演">音樂與表演</button>
-        <button class="interest-btn" data-val="手作與工藝">手作與工藝</button>
-        <button class="interest-btn" data-val="運動與體能">運動與體能</button>
-        <button class="interest-btn" data-val="美食與生活">美食與生活</button>
+    <button class="search-btn" id="searchBtn" onclick="doSearch()">搜尋並篩選活動</button>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <div id="loadingText">AI 正在搜尋並篩選活動中⋯</div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <!-- Results -->
+    <div id="results">
+      <div class="results-header">
+        <div class="results-title">本週推薦活動</div>
+        <div class="results-meta" id="resultsMeta"></div>
       </div>
-    </div>
-  </div>
 
-  <button class="search-btn" id="searchBtn" onclick="doSearch()">搜尋並篩選活動</button>
+      <div class="action-row">
+        <button class="action-btn" onclick="copyList()">複製清單</button>
+        <button class="action-btn" onclick="toggleSelectAll()">全選／取消</button>
+        <button class="action-btn notion" id="notionBtn" onclick="saveToNotion()">存入已選活動</button>
+      </div>
 
-  <div class="loading" id="loading">
-    <div class="spinner"></div>
-    <div id="loadingText">AI 正在搜尋並篩選活動中⋯</div>
-  </div>
+      <!-- Notion 儲存改由 Make Webhook 處理，原輸入區塊移除 -->
 
-  <div class="error-box" id="errorBox"></div>
-
-  <!-- Results -->
-  <div id="results">
-    <div class="results-header">
-      <div class="results-title">本週推薦活動</div>
-      <div class="results-meta" id="resultsMeta"></div>
+      <div id="activityList"></div>
     </div>
 
-    <div class="action-row">
-      <button class="action-btn" onclick="copyList()">複製清單</button>
-      <button class="action-btn" onclick="toggleSelectAll()">全選／取消</button>
-      <button class="action-btn notion" id="notionBtn" onclick="saveToNotion()">存入已選活動</button>
-    </div>
+  </main>
 
-    <!-- Notion 儲存改由 Make Webhook 處理，原輸入區塊移除 -->
-    
-    <div id="activityList"></div>
-  </div>
+  <div class="toast" id="toast"></div>
 
-</main>
+  <script>
+    let lastActivities = [];
 
-<div class="toast" id="toast"></div>
+    // Toggle buttons
+    document.querySelectorAll('.region-btn').forEach(btn => {
+      btn.addEventListener('click', () => btn.classList.toggle('on'));
+    });
+    document.querySelectorAll('.interest-btn').forEach(btn => {
+      btn.addEventListener('click', () => btn.classList.toggle('on'));
+    });
 
-<script>
-let lastActivities = [];
+    function toggleVis(id) {
+      const el = document.getElementById(id);
+      el.type = el.type === 'password' ? 'text' : 'password';
+    }
 
-// Toggle buttons
-document.querySelectorAll('.region-btn').forEach(btn => {
-  btn.addEventListener('click', () => btn.classList.toggle('on'));
-});
-document.querySelectorAll('.interest-btn').forEach(btn => {
-  btn.addEventListener('click', () => btn.classList.toggle('on'));
-});
+    function getRegions() {
+      return [...document.querySelectorAll('.region-btn.on')].map(b => b.dataset.val);
+    }
+    function getInterests() {
+      return [...document.querySelectorAll('.interest-btn.on')].map(b => b.dataset.val);
+    }
 
-function toggleVis(id) {
-  const el = document.getElementById(id);
-  el.type = el.type === 'password' ? 'text' : 'password';
-}
+    async function doSearch() {
+      const apiKey = document.getElementById('geminiKey').value.trim();
+      if (!apiKey) { showError('請先填入 Gemini API Key'); return; }
 
-function getRegions() {
-  return [...document.querySelectorAll('.region-btn.on')].map(b => b.dataset.val);
-}
-function getInterests() {
-  return [...document.querySelectorAll('.interest-btn.on')].map(b => b.dataset.val);
-}
+      const regions = getRegions();
+      if (!regions.length) { showError('請至少選擇一個地區'); return; }
 
-async function doSearch() {
-  const apiKey = document.getElementById('geminiKey').value.trim();
-  if (!apiKey) { showError('請先填入 Gemini API Key'); return; }
+      const age = document.getElementById('childAge').value || '12';
+      const weeks = document.getElementById('weeksAhead').value || '4';
+      const interests = getInterests();
 
-  const regions = getRegions();
-  if (!regions.length) { showError('請至少選擇一個地區'); return; }
+      const interestText = interests.length
+        ? `興趣方向偏好：${interests.join('、')}`
+        : '不限興趣，廣泛搜尋各類體驗活動';
 
-  const age = document.getElementById('childAge').value || '12';
-  const weeks = document.getElementById('weeksAhead').value || '4';
-  const interests = getInterests();
+      const today = new Date();
+      const dateStr = today.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' });
 
-  const interestText = interests.length
-    ? `興趣方向偏好：${interests.join('、')}`
-    : '不限興趣，廣泛搜尋各類體驗活動';
-
-  const today = new Date();
-  const dateStr = today.toLocaleDateString('zh-TW', { year:'numeric', month:'long', day:'numeric' });
-
-  const prompt = `今天是 ${dateStr}。
+      const prompt = `今天是 ${dateStr}。
 
 請幫我搜尋並整理台灣以下地區，未來 ${weeks} 週內，適合 ${age} 歲男孩參與的親子體驗活動：
 地區範圍：${regions.join('、')}
@@ -594,88 +744,88 @@ ${interestText}
   }
 ]`;
 
-  setLoading(true);
-  clearError();
-  document.getElementById('results').classList.remove('show');
+      setLoading(true);
+      clearError();
+      document.getElementById('results').classList.remove('show');
 
-  try {
-    const model = 'gemini-2.5-flash';
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      try {
+        const model = 'gemini-2.5-flash';
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        tools: [{ google_search: {} }],
-        generationConfig: {
-          temperature: 0.5,
-          maxOutputTokens: 8192
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            tools: [{ google_search: {} }],
+            generationConfig: {
+              temperature: 0.5,
+              maxOutputTokens: 8192
+            }
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error?.message || `API 錯誤 ${res.status}`);
         }
-      })
-    });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error?.message || `API 錯誤 ${res.status}`);
+        const data = await res.json();
+        const candidate = data.candidates?.[0];
+        if (!candidate) throw new Error('Gemini 沒有回傳結果，請再試一次');
+
+        const parts = candidate.content?.parts || [];
+        let text = parts.filter(p => p.text && p.text.trim().length > 0).map(p => p.text).join('\n');
+        if (!text) throw new Error('Gemini 沒有回傳文字內容，請再試一次');
+
+        // Clean up response
+        text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+        text = text.replace(/\s*\[cite:[^\]]*\]/g, '');
+
+        // Find JSON array
+        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        if (!jsonMatch) throw new Error('AI 未回傳活動資料，請再試一次');
+
+        let jsonStr = jsonMatch[0];
+
+        // If truncated by MAX_TOKENS, salvage complete objects
+        if (candidate.finishReason === 'MAX_TOKENS') {
+          const lastComma = jsonStr.lastIndexOf('},');
+          if (lastComma > 0) jsonStr = jsonStr.slice(0, lastComma + 1) + ']';
+        }
+
+        // Remove control characters that break JSON parsing
+        jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
+        let activities;
+        try {
+          activities = JSON.parse(jsonStr);
+        } catch (parseErr) {
+          throw new Error('活動資料解析失敗，請再試一次');
+        }
+
+        if (!Array.isArray(activities) || activities.length === 0) {
+          throw new Error('AI 未找到符合條件的活動，請調整搜尋條件後再試');
+        }
+
+        lastActivities = activities;
+        renderResults(activities, regions, age, weeks);
+
+      } catch (e) {
+        showError(e.message || '搜尋失敗，請確認 Gemini API Key 是否正確');
+      } finally {
+        setLoading(false);
+      }
     }
 
-    const data = await res.json();
-    const candidate = data.candidates?.[0];
-    if (!candidate) throw new Error('Gemini 沒有回傳結果，請再試一次');
+    function renderResults(activities, regions, age, weeks) {
+      const list = document.getElementById('activityList');
+      const meta = document.getElementById('resultsMeta');
 
-    const parts = candidate.content?.parts || [];
-    let text = parts.filter(p => p.text && p.text.trim().length > 0).map(p => p.text).join('\n');
-    if (!text) throw new Error('Gemini 沒有回傳文字內容，請再試一次');
+      meta.textContent = `共 ${activities.length} 個活動 · ${regions.join('、')} · 未來 ${weeks} 週`;
 
-    // Clean up response
-    text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-    text = text.replace(/\s*\[cite:[^\]]*\]/g, '');
-
-    // Find JSON array
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) throw new Error('AI 未回傳活動資料，請再試一次');
-
-    let jsonStr = jsonMatch[0];
-
-    // If truncated by MAX_TOKENS, salvage complete objects
-    if (candidate.finishReason === 'MAX_TOKENS') {
-      const lastComma = jsonStr.lastIndexOf('},');
-      if (lastComma > 0) jsonStr = jsonStr.slice(0, lastComma + 1) + ']';
-    }
-
-    // Remove control characters that break JSON parsing
-    jsonStr = jsonStr.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-
-    let activities;
-    try {
-      activities = JSON.parse(jsonStr);
-    } catch(parseErr) {
-      throw new Error('活動資料解析失敗，請再試一次');
-    }
-
-    if (!Array.isArray(activities) || activities.length === 0) {
-      throw new Error('AI 未找到符合條件的活動，請調整搜尋條件後再試');
-    }
-
-    lastActivities = activities;
-    renderResults(activities, regions, age, weeks);
-
-  } catch (e) {
-    showError(e.message || '搜尋失敗，請確認 Gemini API Key 是否正確');
-  } finally {
-    setLoading(false);
-  }
-}
-
-function renderResults(activities, regions, age, weeks) {
-  const list = document.getElementById('activityList');
-  const meta = document.getElementById('resultsMeta');
-
-  meta.textContent = `共 ${activities.length} 個活動 · ${regions.join('、')} · 未來 ${weeks} 週`;
-
-  list.innerHTML = activities.map((a, i) => `
-    <div class="activity-card" id="card-${i}" style="animation-delay:${i*0.06}s">
+      list.innerHTML = activities.map((a, i) => `
+    <div class="activity-card" id="card-${i}" style="animation-delay:${i * 0.06}s">
       <div class="activity-checkbox">
         <input type="checkbox" id="chk-${i}" onchange="toggleCard(${i})" checked>
         <label for="chk-${i}">加入收藏</label>
@@ -693,127 +843,130 @@ function renderResults(activities, regions, age, weeks) {
     </div>
   `).join('');
 
-  // Default: all checked and highlighted
-  activities.forEach((_, i) => {
-    document.getElementById('card-' + i)?.classList.add('selected');
-  });
-
-  document.getElementById('results').classList.add('show');
-  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function toggleCard(i) {
-  const chk = document.getElementById('chk-' + i);
-  const card = document.getElementById('card-' + i);
-  if (chk && card) card.classList.toggle('selected', chk.checked);
-}
-
-function toggleSelectAll() {
-  const checkboxes = document.querySelectorAll('.activity-checkbox input[type="checkbox"]');
-  const allChecked = [...checkboxes].every(c => c.checked);
-  checkboxes.forEach((c, i) => {
-    c.checked = !allChecked;
-    toggleCard(i);
-  });
-}
-
-function copyList() {
-  if (!lastActivities.length) return;
-  const text = lastActivities.map((a, i) =>
-    `${i+1}. ${a.name}\n   日期：${a.date}\n   地點：${a.location}（${a.region}）\n   推薦理由：${a.reason}\n   連結：${a.link}`
-  ).join('\n\n');
-  navigator.clipboard.writeText(text).then(() => showToast('清單已複製到剪貼簿'));
-}
-
-async function saveToNotion() {
-  const selected = lastActivities.filter((_, i) => {
-    const chk = document.getElementById('chk-' + i);
-    return chk && chk.checked;
-  });
-  if (!selected.length) { showToast('請至少勾選一個活動'); return; }
-
-  const btn = document.getElementById('notionBtn');
-  btn.disabled = true;
-  btn.textContent = `存入 ${selected.length} 個活動中...`;
-
-  let success = 0, fail = 0;
-
-  for (const a of selected) {
-    try {
-      // 組合備註文字
-      const noteText = [
-        a.region ? `地區：${a.region}` : '',
-        a.reason || ''
-      ].filter(Boolean).join('\n');
-
-      // 呼叫 Make Webhook 傳送資料
-      const res = await fetch('https://hook.us2.make.com/ul5thoiydc7n8ncvqkj04kxb80qnthv5', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        // 將資料包裝成簡單平坦的格式丟給 Make 處理
-        body: JSON.stringify({
-          name: a.name || '',
-          date: a.date ? parseNotionDate(a.date) : null,
-          location: a.location || '',
-          link: (a.link && a.link !== '#') ? a.link : null,
-          note: noteText,
-          status: '收集',
-          source: '其它',
-          type: '親子'
-        })
+      // Default: all checked and highlighted
+      activities.forEach((_, i) => {
+        document.getElementById('card-' + i)?.classList.add('selected');
       });
-      
-      if (res.ok) success++;
-      else fail++;
-    } catch(e) {
-      console.error('Webhook save error:', e);
-      fail++;
+
+      document.getElementById('results').classList.add('show');
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }
 
-  btn.disabled = false;
-  btn.textContent = '存入已選活動';
-  showToast(fail === 0
-    ? `✅ 已傳送 ${success} 個活動到 Make`
-    : `傳送完成：${success} 成功，${fail} 失敗`
-  );
-}
+    function toggleCard(i) {
+      const chk = document.getElementById('chk-' + i);
+      const card = document.getElementById('card-' + i);
+      if (chk && card) card.classList.toggle('selected', chk.checked);
+    }
 
-function parseNotionDate(dateStr) {
-  if (!dateStr) return new Date().toISOString().split('T')[0];
-  // Handle ranges like "2026/04/18–2026/05/09", take start date
-  const cleaned = dateStr.split(/[–—~至]/)[0].trim();
-  // Try to parse various formats
-  const m = cleaned.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-  if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
-  // Fallback: today
-  return new Date().toISOString().split('T')[0];
-}
+    function toggleSelectAll() {
+      const checkboxes = document.querySelectorAll('.activity-checkbox input[type="checkbox"]');
+      const allChecked = [...checkboxes].every(c => c.checked);
+      checkboxes.forEach((c, i) => {
+        c.checked = !allChecked;
+        toggleCard(i);
+      });
+    }
 
-function setLoading(on) {
-  document.getElementById('loading').classList.toggle('show', on);
-  document.getElementById('searchBtn').disabled = on;
-  document.getElementById('searchBtn').textContent = on ? '搜尋中...' : '搜尋並篩選活動';
-}
-function showError(msg) {
-  const el = document.getElementById('errorBox');
-  el.textContent = msg;
-  el.classList.add('show');
-}
-function clearError() {
-  document.getElementById('errorBox').classList.remove('show');
-}
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-</script>
+    function copyList() {
+      if (!lastActivities.length) return;
+      const text = lastActivities.map((a, i) =>
+        `${i + 1}. ${a.name}\n   日期：${a.date}\n   地點：${a.location}（${a.region}）\n   推薦理由：${a.reason}\n   連結：${a.link}`
+      ).join('\n\n');
+      navigator.clipboard.writeText(text).then(() => showToast('清單已複製到剪貼簿'));
+    }
+
+    async function saveToNotion() {
+      const selected = lastActivities.filter((_, i) => {
+        const chk = document.getElementById('chk-' + i);
+        return chk && chk.checked;
+      });
+      if (!selected.length) { showToast('請至少勾選一個活動'); return; }
+
+      const btn = document.getElementById('notionBtn');
+      btn.disabled = true;
+      btn.textContent = `存入 ${selected.length} 個活動中...`;
+
+      let success = 0, fail = 0;
+
+      for (const a of selected) {
+        try {
+          // 組合備註文字
+          const noteText = [
+            a.region ? `地區：${a.region}` : '',
+            a.reason || ''
+          ].filter(Boolean).join('\n');
+
+          // 呼叫 Make Webhook 傳送資料
+          const res = await fetch('https://hook.us2.make.com/ul5thoiydc7n8ncvqkj04kxb80qnthv5', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            // 將資料包裝成簡單平坦的格式丟給 Make 處理
+            body: JSON.stringify({
+              name: a.name || '',
+              date: a.date ? parseNotionDate(a.date) : null,
+              location: a.location || '',
+              link: (a.link && a.link !== '#') ? a.link : null,
+              note: noteText,
+              status: '收集',
+              source: '其它',
+              type: '親子',
+              // 產生簡易的唯一識別碼供 Make 判斷重複（名稱＋日期的組合）
+              externalId: encodeURIComponent((a.name || '') + (a.date || '')).substring(0, 100)
+            })
+          });
+
+          if (res.ok) success++;
+          else fail++;
+        } catch (e) {
+          console.error('Webhook save error:', e);
+          fail++;
+        }
+      }
+
+      btn.disabled = false;
+      btn.textContent = '存入已選活動';
+      showToast(fail === 0
+        ? `✅ 已傳送 ${success} 個活動到 Make`
+        : `傳送完成：${success} 成功，${fail} 失敗`
+      );
+    }
+
+    function parseNotionDate(dateStr) {
+      if (!dateStr) return new Date().toISOString().split('T')[0];
+      // Handle ranges like "2026/04/18–2026/05/09", take start date
+      const cleaned = dateStr.split(/[–—~至]/)[0].trim();
+      // Try to parse various formats
+      const m = cleaned.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+      if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+      // Fallback: today
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function setLoading(on) {
+      document.getElementById('loading').classList.toggle('show', on);
+      document.getElementById('searchBtn').disabled = on;
+      document.getElementById('searchBtn').textContent = on ? '搜尋中...' : '搜尋並篩選活動';
+    }
+    function showError(msg) {
+      const el = document.getElementById('errorBox');
+      el.textContent = msg;
+      el.classList.add('show');
+    }
+    function clearError() {
+      document.getElementById('errorBox').classList.remove('show');
+    }
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+    function escHtml(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
 </body>
+
 </html>
