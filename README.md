@@ -53,9 +53,15 @@
 ## 待辦與未來規劃
 - [x] 解決直連 Notion API 的 CORS 錯誤 (改用 Make Webhook)
 - [x] 移除每次使用需重複輸入 Notion Token 的麻煩與資安風險
+- [x] 新增 `externalId` 以支援 Make.com 阻擋記錄重複寫入 Notion
 - [ ] 考慮讓「複製清單」也支援只複製已選活動
-- [ ] 考慮串接 Make.com 每週自動通知
-- [ ] 未來可直接串接 Accupass、KKtix API 提升資料準確度
+- [ ] 考慮串接 Make.com 每週自動搜尋並通知
+
+## 迭代優化建議 (Future Iterations)
+1. **防止重複存檔 (Deduplication)**：配合網頁傳送的 `externalId` (活動名稱＋日期)，可在 Make 自動化流程中加入「Search Objects」判斷式，實現「無則新增，有則略過」。
+2. **自動觸發與定時報表**：善用 Make 內建的排程功能 (Schedule)，可讓中繼站每週五固定抓取週末活動，並自動透過 LINE 或 Email 發送通知。
+3. **引入官方售票 API**：為進階提升活動豐富性與避免 AI 幻覺，未來可逐漸取代純 LLM 搜尋，改串接 Accupass、KKtix 或各縣市文化局官方 API。
+4. **地圖定位整合**：目前已在 Notion 中設定純文字地址紀錄，未來若串接資料庫能取得精準地址，可進一步嵌入 Google Maps 連結，方便出遊導航。
 
 ## 版本紀錄
 - v1.0｜2026-04 — 初版，使用 Anthropic API
