@@ -17,7 +17,7 @@
 - AI：Gemini 2.5 Flash API（含 Google Search 即時搜尋）
 - 部署：GitHub Pages
 - 網址：https://0xlmwhatim.github.io/family-activity-finder/
-- API Key：使用者手動輸入，只存在瀏覽器畫面中，不寫入程式碼，也不傳送到自有伺服器
+- 金鑰安全：Gemini API Key 僅存在瀏覽器畫面中；Notion 存取則改由 Make.com Webhook 中繼處理，前端不需填寫 Token。
 
 ## 主要功能
 - 依孩子年齡、未來週數、地區與興趣方向搜尋親子活動
@@ -28,16 +28,15 @@
 - 可使用「全選／取消」批次切換收藏狀態
 - 存入 Notion 時只會存入目前已勾選的活動
 
-## Notion 整合
+## Notion 整合 (透過 Make.com Webhook)
 - 串接資料庫：Events_DB（活動收藏）
-- 存入方式：在搜尋結果中勾選要收藏的活動後，按「存入已選活動」
+- 存入方式：網頁前端透過 Webhook 將資料打包送出，再由 Make.com 代理寫入 Notion
 - 存入欄位：活動名稱、開始時間、地點、超連結、備註、狀態、來源、類型
 - 狀態預設：收集
 - 來源預設：其它
 - 類型預設：親子
 - 備註內容：地區 + AI 推薦理由
-- 使用前需在 Events_DB 頁面連結 Notion Integration
-- 存入前需填入 Notion Integration Token 與 Database ID
+- 設定方式：需在 Make.com 新增情境「Custom Webhook ➔ Notion (Create a Database Item)」並準備好對應欄位
 
 ## 搜尋條件預設值
 - 孩子年齡：12 歲
@@ -50,11 +49,10 @@
 - Gemini 回傳的活動連結需人工確認是否正確
 - 日期區間（如 4/18–5/9）自動取起始日存入 Notion
 - 「複製清單」會複製全部搜尋結果，不受活動勾選狀態影響
-- Notion Token 與 Database ID 需每次使用時手動填入
 
 ## 待辦與未來規劃
-- [ ] 測試 Notion 存入已選活動功能是否正常運作
-- [ ] 考慮記住 Notion Token 與 Database ID，降低重複輸入
+- [x] 解決直連 Notion API 的 CORS 錯誤 (改用 Make Webhook)
+- [x] 移除每次使用需重複輸入 Notion Token 的麻煩與資安風險
 - [ ] 考慮讓「複製清單」也支援只複製已選活動
 - [ ] 考慮串接 Make.com 每週自動通知
 - [ ] 未來可直接串接 Accupass、KKtix API 提升資料準確度
@@ -66,3 +64,4 @@
 - v1.3｜2026-04 — 修正 JSON 解析：清除特殊字元與引用標記
 - v1.4｜2026-04 — 更新 Notion 存入欄位對應 Events_DB
 - v1.5｜2026-04 — 新增活動勾選收藏、全選／取消，Notion 改為只存入已選活動
+- v1.6｜2026-04 — 架構大翻新：解決 Notion CORS 報錯，改用 Make.com Webhook 中繼，並移除前端輸入 Token 欄位

@@ -516,32 +516,11 @@
     <div class="action-row">
       <button class="action-btn" onclick="copyList()">複製清單</button>
       <button class="action-btn" onclick="toggleSelectAll()">全選／取消</button>
-      <button class="action-btn notion" id="notionBtn" onclick="toggleNotionConfig()">存入已選活動</button>
+      <button class="action-btn notion" id="notionBtn" onclick="saveToNotion()">存入已選活動</button>
     </div>
 
-    <!-- Notion config (hidden by default) -->
-    <div class="notion-config" id="notionConfig">
-      <div class="card-title">Notion 設定</div>
-      <div class="notion-fields">
-        <div class="notion-field">
-          <label>Notion Integration Token</label>
-          <input type="password" id="notionToken" placeholder="secret_...">
-        </div>
-        <div class="notion-field">
-          <label>Database ID（從 Notion 頁面 URL 取得）</label>
-          <input type="text" id="notionDbId" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
-        </div>
-        <div style="display:flex;gap:8px;margin-top:4px">
-          <button class="action-btn notion" onclick="saveToNotion()" id="notionSaveBtn">確認存入</button>
-          <button class="action-btn" onclick="toggleNotionConfig()">取消</button>
-        </div>
-        <div style="font-size:12px;color:var(--muted)">
-          使用你的 Events_DB（活動收藏）。存入前請確認已在 Notion 將 Integration 連結到該 Database。
-          <a href="https://www.notion.so/my-integrations" target="_blank" style="color:var(--accent2)">管理 Integration →</a>
-        </div>
-      </div>
-    </div>
-
+    <!-- Notion 儲存改由 Make Webhook 處理，原輸入區塊移除 -->
+    
     <div id="activityList"></div>
   </div>
 
@@ -746,22 +725,14 @@ function copyList() {
   navigator.clipboard.writeText(text).then(() => showToast('清單已複製到剪貼簿'));
 }
 
-function toggleNotionConfig() {
-  const el = document.getElementById('notionConfig');
-  el.classList.toggle('show');
-}
-
 async function saveToNotion() {
-  const token = document.getElementById('notionToken').value.trim();
-  const dbId = document.getElementById('notionDbId').value.trim().replace(/-/g, '');
-  if (!token || !dbId) { showToast('請填入 Notion Token 和 Database ID'); return; }
   const selected = lastActivities.filter((_, i) => {
     const chk = document.getElementById('chk-' + i);
     return chk && chk.checked;
   });
   if (!selected.length) { showToast('請至少勾選一個活動'); return; }
 
-  const btn = document.getElementById('notionSaveBtn');
+  const btn = document.getElementById('notionBtn');
   btn.disabled = true;
   btn.textContent = `存入 ${selected.length} 個活動中...`;
 
@@ -769,51 +740,44 @@ async function saveToNotion() {
 
   for (const a of selected) {
     try {
-      // Build reason text: include region + AI reason
+      // 組合備註文字
       const noteText = [
         a.region ? `地區：${a.region}` : '',
         a.reason || ''
       ].filter(Boolean).join('\n');
 
-      const res = await fetch('https://api.notion.com/v1/pages', {
+      // 呼叫 Make Webhook 傳送資料
+      const res = await fetch('https://hook.us2.make.com/ul5thoiydc7n8ncvqkj04kxb80qnthv5', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Notion-Version': '2022-06-28'
+          'Content-Type': 'application/json'
         },
+        // 將資料包裝成簡單平坦的格式丟給 Make 處理
         body: JSON.stringify({
-          parent: { database_id: dbId },
-          properties: {
-            '活動名稱': { title: [{ text: { content: a.name || '' } }] },
-            '開始時間': { date: a.date ? { start: parseNotionDate(a.date) } : null },
-            '地點': { rich_text: [{ text: { content: a.location || '' } }] },
-            '超連結': { url: (a.link && a.link !== '#') ? a.link : null },
-            '備註': { rich_text: [{ text: { content: noteText } }] },
-            '狀態': { status: { name: '收集' } },
-            '來源': { select: { name: '其它' } },
-            '類型': { multi_select: [{ name: '親子' }] }
-          }
+          name: a.name || '',
+          date: a.date ? parseNotionDate(a.date) : null,
+          location: a.location || '',
+          link: (a.link && a.link !== '#') ? a.link : null,
+          note: noteText,
+          status: '收集',
+          source: '其它',
+          type: '親子'
         })
       });
+      
       if (res.ok) success++;
-      else {
-        const errData = await res.json().catch(() => ({}));
-        console.error('Notion error:', errData);
-        fail++;
-      }
+      else fail++;
     } catch(e) {
-      console.error('Notion save error:', e);
+      console.error('Webhook save error:', e);
       fail++;
     }
   }
 
   btn.disabled = false;
-  btn.textContent = '確認存入';
-  toggleNotionConfig();
+  btn.textContent = '存入已選活動';
   showToast(fail === 0
-    ? `已成功存入 ${success} 個活動到 Notion`
-    : `存入完成：${success} 成功，${fail} 失敗`
+    ? `✅ 已傳送 ${success} 個活動到 Make`
+    : `傳送完成：${success} 成功，${fail} 失敗`
   );
 }
 
