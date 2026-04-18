@@ -54,7 +54,7 @@
 - [x] 解決直連 Notion API 的 CORS 錯誤 (改用 Make Webhook)
 - [x] 移除每次使用需重複輸入 Notion Token 的麻煩與資安風險
 - [x] 新增 `externalId` 以支援 Make.com 阻擋記錄重複寫入 Notion
-- [ ] 考慮讓「複製清單」也支援只複製已選活動
+- [x] 考慮讓「複製清單」也支援只複製已選活動
 - [ ] 考慮串接 Make.com 每週自動搜尋並通知
 
 ## 迭代優化建議 (Future Iterations)
@@ -72,3 +72,4 @@
 - v1.5｜2026-04 — 新增活動勾選收藏、全選／取消，Notion 改為只存入已選活動
 - v1.6｜2026-04 — 架構大翻新：解決 Notion CORS 報錯，改用 Make.com Webhook 中繼，並移除前端輸入 Token 欄位
 - v1.7｜2026-04 — 資料結構優化：新增送出 `externalId` 特徵碼，支援後續防重覆機制
+- v1.8｜2026-04 — UX 優化：新增 LocalStorage 記憶 Gemini API Key (保留 BYOK 模式)
